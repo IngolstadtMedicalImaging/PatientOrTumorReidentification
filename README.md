@@ -1,24 +1,25 @@
-# Project Name
-A simple template to get you started on your machine learning projects. Check out the [HOWTO.md](HOWTO.md) for more information on how to use the template. 
+# Patient or Tumor-Reidentification from Histopathology Images
+In this bachelor thesis, deep learning methods are used to try to re-identify patients or
+tumors using histopathology images (Whole Slide Images).
 
 ## Objectives
 
-Here you can describe the objectives of your project.
+tba
 
 ## Explorative Results
 
-Here you can add a short summary about your data.
+tba
 
 ## Modelling Results
 
-Here you can add a short summary of the results of your model.
+tba
 
 ## Usage
 
-Here you can add an explanatation of how to use your project.
+tba
 
 ## Configuration 
 
-Here you can add information about the configuration of your project.
+tba
 
 
