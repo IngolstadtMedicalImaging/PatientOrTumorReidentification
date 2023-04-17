@@ -32,8 +32,12 @@ def load_pretrained_backbone(feature_extractor, pretrained_backbone):
         pretrained_dict = torch.load(pretrained_backbone)
     else:
         pretrained_dict = torch.load(pretrained_backbone, map_location=torch.device('cpu')) # CPU Machines only
+
+    for key in list(pretrained_dict.keys()):
+        pretrained_dict[key.replace('feature_extractor.', '')] = pretrained_dict.pop(key)
     
-    feature_extractor.load_state_dict(pretrained_dict, strict=True)
+    feature_extractor.load_state_dict(pretrained_dict)
+    print([print(param) for param in feature_extractor.fc.parameters()])
 
     return feature_extractor
 
@@ -50,10 +54,12 @@ class MIL(nn.Module):
             self.feature_extractor = models.resnet18(pretrained=True)
         if arch == 'mil-resnet50':
             self.feature_extractor = models.resnet50(pretrained=True)
+            self.feature_extractor.fc = nn.Linear(self.feature_extractor.fc.in_features, self.n_classes)
             if pretrained_backbone != 'none':
                 self.feature_extractor = load_pretrained_backbone(self.feature_extractor, pretrained_backbone)
                 print("loaded pretrained backbone")
                 
+        self.classifier = self.feature_extractor.fc
         self.feature_extractor = nn.Sequential(*list(self.feature_extractor.children())[:-1])
 
         for param in self.feature_extractor.parameters():
@@ -64,8 +70,6 @@ class MIL(nn.Module):
             nn.Tanh(),
             nn.Linear(self.D, self.K)
         )
-
-        self.classifier = nn.Linear(2048, self.n_classes)
 
     def forward(self, x):
         batch_Y = []

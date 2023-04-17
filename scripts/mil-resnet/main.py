@@ -20,12 +20,17 @@ def eval_one_epoch(model, criterion, loader, device, writer: SummaryWriter, epoc
         epoch_loss, epoch_accuracy = .0, .0
         for ix, (images, targets) in enumerate(loader):
             images, targets = images.to(device), targets.to(device)
+            # print(f'\nTargets Test: {targets}')
 
             output = model(images)
             output_argmax = output.argmax(dim=-1)
             
             epoch_loss += criterion(output, targets).item()
             epoch_accuracy += (output_argmax == targets).float().sum() / len(targets)
+
+            # print((output_argmax == targets))
+            # print((output_argmax == targets).float().sum())
+            # print(epoch_accuracy)
 
             output = output.detach().cpu()
 
@@ -87,8 +92,8 @@ def train_model(args) -> None:
 
     n_classes = data_train.get_num_classes()
 
-    loader_train = DataLoader(data_train, batch_size=args.batch_size, shuffle=True, drop_last=True, num_workers=8)
-    loader_val = DataLoader(data_val, batch_size=args.batch_size_val, shuffle=True, drop_last=True, num_workers=8)
+    loader_train = DataLoader(data_train, batch_size=args.batch_size, shuffle=True, drop_last=True, num_workers=6)
+    loader_val = DataLoader(data_val, batch_size=args.batch_size_val, shuffle=True, drop_last=True, num_workers=6)
 
     model = get_model(args, n_classes=n_classes, pretrained=args.pretrained_model)
 
@@ -120,11 +125,11 @@ def train_model(args) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_dir', type=str, default='data/Meningeome_1000_anon')
-    parser.add_argument('--ckp_dir', type=str, default='scripts/mil-resnet/checkpoints')
+    parser.add_argument('--ckp_dir', type=str, default='mil-resnet/checkpoints')
     parser.add_argument('--arch', type=str, default='mil-resnet50',
                         choices=['mil-resnet18', 'mil-resnet50', 'ilse'])
     parser.add_argument('--weights_dir', type=str, default='none')
-    parser.add_argument('--pretrained_backbone', type=str, default='scripts/single-resnet/checkpoints/resnet50-pretraining_31_03_2023-16_52/resnet50-pretraining_5000.pth')
+    parser.add_argument('--pretrained_backbone', type=str, default='single-resnet/checkpoints/resnet50-pretraining_31_03_2023-16_52/resnet50-pretraining_5000.pth')
     
     # Augmentations
     parser.add_argument('--augmentations_train', type=str, default='ToTensor(),ColorJitter(),RandomVerticalFlip(),RandomHorizontalFlip(),GaussianBlur(),Normalize()')
@@ -140,10 +145,10 @@ def main() -> None:
     
     parser.add_argument('--gamma', type=float, default=0.9)
     
-    parser.add_argument('--batch_size', type=int, default=64)
-    parser.add_argument('--batch_size_val', type=int, default=64)
+    parser.add_argument('--batch_size', type=int, default=32)
+    parser.add_argument('--batch_size_val', type=int, default=32)
     parser.add_argument('--n_epochs', type=int, default=5000)
-    parser.add_argument('--pseudo_epoch_length', type=int, default=1024)
+    parser.add_argument('--pseudo_epoch_length', type=int, default=512)
 
     parser.add_argument('--csv', type=str, default="data/final/reid_patches.csv")
     parser.add_argument('--slide_level', type=int, default=1)
@@ -152,7 +157,7 @@ def main() -> None:
     parser.add_argument('--eval_epoch', type=int, default=10)
     parser.add_argument('--pretrained_model', type=bool, default=True)
 
-    parser.add_argument('--bag_size', type=int, default=10)
+    parser.add_argument('--bag_size', type=int, default=50)
     args = parser.parse_args()
 
     train_model(args)
