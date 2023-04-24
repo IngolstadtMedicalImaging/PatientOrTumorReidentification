@@ -92,8 +92,8 @@ def train_model(args) -> None:
 
     n_classes = data_train.get_num_classes()
 
-    loader_train = DataLoader(data_train, batch_size=args.batch_size, shuffle=True, drop_last=True, num_workers=6)
-    loader_val = DataLoader(data_val, batch_size=args.batch_size_val, shuffle=True, drop_last=True, num_workers=6)
+    loader_train = DataLoader(data_train, batch_size=args.batch_size, shuffle=True, drop_last=True, num_workers=4)
+    loader_val = DataLoader(data_val, batch_size=args.batch_size_val, shuffle=True, drop_last=True, num_workers=4)
 
     model = get_model(args, n_classes=n_classes, pretrained=args.pretrained_model)
 
@@ -158,6 +158,7 @@ def main() -> None:
     parser.add_argument('--pretrained_model', type=bool, default=True)
 
     parser.add_argument('--bag_size', type=int, default=50)
+    parser.add_argument('--attention_size', type=int, default=128)
     args = parser.parse_args()
 
     train_model(args)

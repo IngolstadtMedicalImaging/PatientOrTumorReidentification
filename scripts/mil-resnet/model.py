@@ -5,7 +5,7 @@ import torchvision.models as models
 import os
 
 def get_model(args, n_classes: int, pretrained=True):
-    model = MIL(n_classes, arch=args.arch, pretrained_backbone=args.pretrained_backbone)
+    model = MIL(n_classes, arch=args.arch, pretrained_backbone=args.pretrained_backbone, attention_size=args.attention_size)
     return model
 
 def load_pretrained_model(args, n_classes):
@@ -43,10 +43,10 @@ def load_pretrained_backbone(feature_extractor, pretrained_backbone):
 
 
 class MIL(nn.Module):
-    def __init__(self, n_classes, arch, pretrained_backbone):
+    def __init__(self, n_classes, arch, pretrained_backbone, attention_size):
         super(MIL, self).__init__()
         self.L = 2048
-        self.D = 128
+        self.D = attention_size
         self.K = 1
         self.n_classes = n_classes
 
@@ -65,8 +65,14 @@ class MIL(nn.Module):
         for param in self.feature_extractor.parameters():
             param.requires_grad = False
 
+        self.attention_backbone = nn.Sequential(
+            nn.Linear(self.L, 1024),
+            nn.ReLU(),
+            nn.Linear(1024, 512)
+        )
+
         self.attention = nn.Sequential(
-            nn.Linear(self.L, self.D),
+            nn.Linear(512, self.D),
             nn.Tanh(),
             nn.Linear(self.D, self.K)
         )
@@ -82,11 +88,14 @@ class MIL(nn.Module):
             H = self.feature_extractor(x)
             H = torch.squeeze(H)
 
-            A = self.attention(H)  # NxK
+            H_A = self.attention_backbone(H)
+            A = self.attention(H_A)  # NxK
             A = torch.transpose(A, 1, 0)  # KxN
             A = F.softmax(A, dim=1)  # softmax over N
 
             M = torch.mm(A, H)  # KxL
+
+            # M = torch.mean(H, dim=0)
 
             Y = self.classifier(M)
 
